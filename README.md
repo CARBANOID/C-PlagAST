@@ -1,4 +1,3 @@
-Certainly! Here's a clear and professional **project description** for your C code plagiarism detection tool using the AST-CC algorithm:
 
 ---
 
@@ -31,5 +30,3 @@ This tool is intended for use in academic and professional environments where ac
 * Ideal for academic plagiarism detection in C programming assignments
 
 ---
-
-Let me know if you'd like this adapted for a README file, documentation, or a project submission!
