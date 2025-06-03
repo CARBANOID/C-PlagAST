@@ -117,5 +117,4 @@ bin\detector_with_filtering.exe original.c --ast-cc-test suspected.c
 
   * `detector_with_filtering.exe` – Main detector with filtering
   * `c_parser.exe` – Optional parser-only binary
-  * 
 ---
