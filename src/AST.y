@@ -451,6 +451,15 @@ iteration_statement
             $$ = create_ast_node(AST_ITERATION_STMT, 4, $4, $5, $6, $8);
         }
     }
+    | FOR LPAREN expression_statement expression_statement expression_opt RPAREN statement { 
+        // Standard for loop without variable declaration
+        // Grammar-level dead loop elimination: always-false condition or empty body
+        if (is_always_false_condition($4) || is_empty_statement($7)) {
+            $$ = NULL; /* Dead for loop eliminated at grammar level */
+        } else {
+            $$ = create_ast_node(AST_ITERATION_STMT, 3, $3, $4, $5, $7);
+        }
+    }
     ;
 
 /* Enhanced conditional statement with grammar-level optimizations */
