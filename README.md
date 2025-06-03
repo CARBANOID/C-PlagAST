@@ -31,7 +31,6 @@ This tool is intended for use in academic and professional environments where ac
 
 ---
 
-Here’s a clear and well-formatted section you can **copy into your GitHub repository README.md** to describe how to **build and run the project** using the provided `Makefile`, `build.sh`, and `build.bat` scripts on both Linux/WSL and Windows:
 
 ---
 
@@ -44,8 +43,6 @@ This project provides multiple ways to build and execute the AST-based C plagiar
 ### 🐧 Linux / WSL
 
 #### ✅ Build using `Makefile` (recommended)
-
-You can add this line to your GitHub description under the Linux/WSL setup section to help users install Bison:
 
 ---
 
