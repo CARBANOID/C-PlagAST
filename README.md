@@ -96,7 +96,7 @@ After building, run:
 Double-click `build.bat` in File Explorer, or run:
 
 ```cmd
-build.bat
+./build.bat
 ```
 
 > ⚠️ Make sure `bison` and `g++` are available in your PATH. You can use MSYS2 or run the project via WSL.
