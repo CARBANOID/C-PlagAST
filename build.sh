@@ -28,7 +28,7 @@ echo "✓ Bison parser generated successfully"
 
 # Move header file to build directory
 if [ -f "AST.tab.h" ]; then
-    mv AST.tab.h ../build/parser.h
+    mv AST.tab.h ../build/parser.hpp
 fi
 
 cd ..
