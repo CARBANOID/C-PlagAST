@@ -31,12 +31,9 @@ This tool is intended for use in academic and professional environments where ac
 
 ---
 
-
----
-
 ## 🛠️ Build & Run Instructions
 
-This project provides multiple ways to build and execute the AST-based C plagiarism detection tool, depending on your operating system.
+This project supports multiple build options for Linux, WSL, and Windows.
 
 ---
 
@@ -44,26 +41,8 @@ This project provides multiple ways to build and execute the AST-based C plagiar
 
 #### ✅ Build using `Makefile` (recommended)
 
----
-
-### 📦 Install Dependencies (Linux / WSL)
-
-Before building, make sure required packages are installed:
-
 ```bash
 sudo apt update && sudo apt install bison g++ make
-```
-
-This installs:
-
-* `bison` – for generating the parser
-* `g++` – for compiling C++ code
-* `make` – for using the Makefile
-
----
-
-
-```bash
 make
 ```
 
@@ -73,18 +52,24 @@ To clean previous builds:
 make clean
 ```
 
-#### ✅ Build using `build.sh` script
+#### ✅ Build using `build.sh`
 
 ```bash
 bash build.sh
 ```
 
-#### ▶️ Run the tool
+#### ▶️ Run the Tool
 
-After building, run:
+To check for plagiarism:
 
 ```bash
-./bin/detector_with_filtering.exe original.c --ast-cc-test suspected.c
+./bin/detector_with_filtering.exe original.c --ast-cc-test suspected1.c suspected2.c suspected3.c
+```
+
+To print the **Normalized AST** for debugging:
+
+```bash
+./bin/detector_with_filtering.exe --printAST test1.c test2.c test3.c
 ```
 
 ---
@@ -93,28 +78,35 @@ After building, run:
 
 #### ✅ Build using `build.bat`
 
-Double-click `build.bat` in File Explorer, or run:
+Run in File Explorer or via Command Prompt:
 
 ```cmd
-./build.bat
+.\build.bat
 ```
 
-> ⚠️ Make sure `bison` and `g++` are available in your PATH. You can use MSYS2 or run the project via WSL.
+> ⚠️ Ensure `bison` and `g++` are available in your `PATH`. Use MSYS2 or WSL if necessary.
 
-#### ▶️ Run the tool
+#### ▶️ Run the Tool
 
-From the command prompt:
+To check for plagiarism:
 
 ```cmd
-bin\detector_with_filtering.exe original.c --ast-cc-test suspected.c
+bin\detector_with_filtering.exe original.c --ast-cc-test suspected1.c suspected2.c suspected3.c
+```
+
+To print the **normalized AST**:
+
+```cmd
+bin\detector_with_filtering.exe --printAST test1.c test2.c test3.c
 ```
 
 ---
 
 ### 📂 Output
 
-* Executables will be created in the `bin/` directory:
+* Executables will be generated in the `bin/` directory:
 
-  * `detector_with_filtering.exe` – Main detector with filtering
-  * `c_parser.exe` – Optional parser-only binary
+  * `detector_with_filtering.exe` – Main detector with normalization and filtering
+  * `c_parser.exe` – Optional standalone parser binary
+
 ---
