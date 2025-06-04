@@ -36,7 +36,6 @@ $(BIN_DIR):
 # Generate parser from Bison grammar
 $(PARSER_SOURCE): $(SRC_DIR)/AST.y | $(BUILD_DIR)
 	cd $(SRC_DIR) && $(BISON) -d -v AST.y -o ../$(BUILD_DIR)/parser.cpp
-	@cp $(BUILD_DIR)/parser.hpp $(BUILD_DIR)/parser.h
 
 # Build main detector
 $(DETECTOR): $(ALL_SOURCES) | $(BIN_DIR)
