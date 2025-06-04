@@ -5,7 +5,7 @@
 #include <string.h>
 #include <unordered_set>
 
-std::ofstream fout ; // for lexical analysis
+std::ofstream fout ; // for lexical analysis output debugging
 std::ifstream *fin = nullptr;
 
 extern YYSTYPE yylval;
@@ -69,7 +69,7 @@ void parse_file(const char* filename) {
             
             std::cout << "\n=== Generating AST Visualizations ===\n";
             generate_dot_file(root, dot_file.c_str());
-            // export_ast_to_json(root, "ast_tree.json");
+            export_ast_to_json(root, "ast_tree.json");
             std::cout << "=====================================\n";
             }
         }
