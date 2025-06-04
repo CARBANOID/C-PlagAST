@@ -43,7 +43,6 @@ This project supports multiple build options for Linux, WSL, and Windows.
 
 ```bash
 sudo apt update && sudo apt install bison g++ make
-make
 ```
 
 To clean previous builds:
