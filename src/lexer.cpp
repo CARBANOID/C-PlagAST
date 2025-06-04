@@ -1,5 +1,5 @@
 #include "Moore.hpp"
-#include "parser.h"
+#include "parser.hpp"
 #include "c_parser.h"
 #include "Visualize.hpp"
 #include <string.h>
