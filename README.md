@@ -39,11 +39,23 @@ This project supports multiple build options for Linux, WSL, and Windows.
 
 ### 🐧 Linux / WSL
 
-#### ✅ Build using `Makefile` (recommended)
+---
+
+### 📦 Install Dependencies
+
+Before building, make sure required packages are installed:
 
 ```bash
 sudo apt update && sudo apt install bison g++ make
 ```
+
+This installs:
+
+* `bison` – for generating the parser
+* `g++` – for compiling C++ code
+* `make` – for using the Makefile
+
+---
 
 To clean previous builds:
 
@@ -51,6 +63,13 @@ To clean previous builds:
 make clean
 ```
 
+#### ✅ Build using `Makefile` (recommended)
+
+```bash
+make
+```
+or 
+---
 #### ✅ Build using `build.sh`
 
 ```bash
@@ -64,6 +83,7 @@ To check for plagiarism:
 ```bash
 ./bin/detector_with_filtering.exe original.c --ast-cc-test suspected1.c suspected2.c suspected3.c
 ```
+The plagiarism will be checked by comparing the added files after the --ast-cc-test flag against original.c .
 
 To print the **Normalized AST** for debugging:
 
@@ -92,6 +112,7 @@ To check for plagiarism:
 ```cmd
 bin\detector_with_filtering.exe original.c --ast-cc-test suspected1.c suspected2.c suspected3.c
 ```
+The plagiarism will be checked by comparing the added files after the --ast-cc-test flag against original.c .
 
 To print the **normalized AST**:
 
