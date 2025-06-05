@@ -56,14 +56,14 @@ struct TypedefInfo {
     bool isPointer;
 };
 
-// For Handing Dead Code after Return
-//------------------------------------
+// For Handing Dead Code after Return / break
+//-------------------------------------------
 bool return_found = false ; 
 bool IsDeadCode = false ;
 bool semi = false ; // for single line statements with for,if,while,else,for
 bool rbrace = false ;
 std::string conditional = "" ;
-//------------------------------------
+//-------------------------------------------
 
 // For typedef
 //------------
@@ -303,7 +303,7 @@ inline token search(std::ifstream& fin) {
                 }
 	    		return curr->getTokenInfo();
 	    	}
-		}
+	    }
 
 	    while ((ch = fin.peek()) != EOF) {
 		 	if(((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch =='_') || (ch >= '0' && ch <= '9'))){
