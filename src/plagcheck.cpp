@@ -4,16 +4,13 @@
 #include <string>
 #include <vector>
 #include <cstring>
+#include <unordered_map>
 
-bool isDescendant(const ASTNodeInfo& potential_child, const ASTNodeInfo& potential_ancestor) {
-    if (potential_child.Node == potential_ancestor.Node) return false;   
-    if (potential_child.Parent == potential_ancestor.Node) return true;
-    if (potential_child.Parent && potential_ancestor.Parent && 
-        potential_child.subtree_size < potential_ancestor.subtree_size &&
-        potential_child.Parent == potential_ancestor.Parent) {
-        return true;
-    } 
-    return false;
+void isDescendant(const ASTNode* node, std::unordered_map<ASTNode*,MatchingSubtree*>&potentialchilds) {
+    if(node == nullptr) return  ;
+    if(potentialchilds.find(const_cast<ASTNode*>(node)) != potentialchilds.end()) 
+        potentialchilds.erase(const_cast<ASTNode*>(node)) ;
+    for(auto child : node->children) isDescendant(child, potentialchilds) ;
 }
 
 void clear_data() {
@@ -48,78 +45,46 @@ int check_plagarism(const char* original_file, const char* suspected_file) {
     std::cout << "Suspected AST size: " << suspected_size << " nodes\n";
     std::cout << "AST-CC Similarity score: " << score << "%\n";
 
+    sort(matchingSubtrees.begin(), matchingSubtrees.end(), []
+    (MatchingSubtree &A, MatchingSubtree &B) {
+        return A.originalNode.subtree_size > B.originalNode.subtree_size;
+    });
 
-    if (score > 0 && !matchingSubtrees.empty()) {
-        std::cout << "\n=== Matching Code Pieces ===\n";
+    std::unordered_map<ASTNode*,MatchingSubtree*> potentialchilds ; 
 
-        std::vector<MatchingSubtree> filteredMatches;
-        std::vector<MatchingSubtree> &sortedMatches = matchingSubtrees;
+    for(int i = 0 ; i < matchingSubtrees.size() ; i++){ 
+        if(matchingSubtrees[i].originalNode.subtree_size < 3) continue ; // skip small subtrees // comment this if you want to see all small matches also
+        potentialchilds[matchingSubtrees[i].originalNode.Node] = &matchingSubtrees[i] ;
+    }
 
-        std::sort(
-            sortedMatches.begin(), sortedMatches.end(), 
-            [](const MatchingSubtree& a, const MatchingSubtree& b) {
-                return a.originalNode.subtree_size > b.originalNode.subtree_size;
-            }
-        );
-        
-        for (const auto& match : sortedMatches) {
-            bool shouldInclude = true;
-            
-            if (match.originalNode.subtree_size < 3) shouldInclude = false;
-            
-            if (shouldInclude) {
-                for (const auto& existingMatch : filteredMatches) {
-                    if (isDescendant(match.originalNode, existingMatch.originalNode) &&
-                        isDescendant(match.suspectedNode, existingMatch.suspectedNode)) {
-                        shouldInclude = false;
-                        break;
-                    }
-                }
-            }
-            
-            if (shouldInclude && match.originalNode.subtree_size >= 5) {
-                int similarCount = 0;
-                for (const auto& otherMatch : sortedMatches) {
-                    if (otherMatch.originalNode.subtree_size == match.originalNode.subtree_size &&
-                        otherMatch.originalNode.subtree_hash == match.originalNode.subtree_hash) {
-                        similarCount++;
-                    }
-                }
-                if (similarCount >= 3) {
-                    std::cout << "⚠️  SUSPICIOUS PATTERN DETECTED: " << similarCount 
-                    << " identical subtrees of size " << match.originalNode.subtree_size
-                    << " found - Strong indication of code copying!\n";
-                }
-            }
-            if (shouldInclude) filteredMatches.push_back(match);
-        }
-        
-        std::cout << "Found " << filteredMatches.size() << " unique matching subtrees (filtered from " 
-                  << matchingSubtrees.size() << " total matches):\n\n";
-        
-        int displayCount = 0;
-        int maxDisplay = filteredMatches.size();
-
-        for (const auto& match : filteredMatches) {
-
-            if (displayCount >= maxDisplay) break;
-            displayCount++;
-
-            std::cout << "Match #" << displayCount << " - " << match.nodeDescription 
-            << " (Size: " << match.originalNode.subtree_size << " nodes)\n\n";
-            
-            print_ast_side_by_side(match.originalNode.Node, match.suspectedNode.Node);
-            
-            std::cout << "\n" << std::string(50,'=') << "\n\n";        }
-        
-        if (filteredMatches.size() > static_cast<size_t>(maxDisplay)) {
-            std::cout << "... and " << (filteredMatches.size() - maxDisplay) 
-                      << " more matches not shown.\n\n";
+    for(int i = 0 ; i< matchingSubtrees.size() ; i++) {
+        ASTNode* node = matchingSubtrees[i].originalNode.Node ;
+        if(potentialchilds.find(node) != potentialchilds.end()) {
+           for(auto child : node->children) isDescendant(child, potentialchilds) ;
         }
     }
+        
+    std::cout << "Found " << potentialchilds.size() << " unique matching subtrees (filtered from " 
+              << matchingSubtrees.size() << " total matches):\n\n";
+        
+    int displayCount = 0;
+    int maxDisplay = potentialchilds.size();
+
+    for (const auto& match : potentialchilds) {
+        if (displayCount >= maxDisplay) break;
+        displayCount++;
+
+        std::cout << "Match #" << displayCount << " - " << match.second->nodeDescription 
+        << " (Size: " << match.second->originalNode.subtree_size << " nodes)\n\n";
+            
+        print_ast_side_by_side(match.second->originalNode.Node, match.second->originalNode.Node);
+        std::cout << "\n" << std::string(50,'=') << "\n\n";        }
+        
+        if (potentialchilds.size() > static_cast<size_t>(maxDisplay)) {
+            std::cout << "... and " << (potentialchilds.size() - maxDisplay) << " more matches not shown.\n\n";
+        }
     
     std::cout << "=========================\n";
-    
     return score;
 }
 
