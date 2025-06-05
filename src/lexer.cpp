@@ -5,7 +5,7 @@
 #include <string.h>
 #include <unordered_set>
 
-std::ofstream fout ; // for lexical analysis output debugging
+std::ofstream fout ; // for lexical analysis
 std::ifstream *fin = nullptr;
 
 extern YYSTYPE yylval;
@@ -99,22 +99,18 @@ int yylex() {
 }
 
 int main(int argc, char **argv) {
-    if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " source.c [--debug] [--ast-cc-test [file2.c]]" << std::endl;
+    if (argc <= 2) {
+        std::cerr << "Usage: " << argv[0] << " [source.c] --ast-cc-test [suspected.c]" << std::endl;
         return 1;
     }
-    bool ast_cc_test = false;
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--ast-cc-test") == 0) {
-            ast_cc_test = true;
-            break;
-        }
-    }
+
+    bool ast_cc_test = ((strcmp(argv[2], "--ast-cc-test") == 0)) ; 
     if (ast_cc_test) {
         Run_AST_CC(argc, argv);
         return 0;
     }
-    printAST = (argc > 2 && strcmp(argv[1], "--printAST") == 0); 
+
+    printAST = ((strcmp(argv[1], "--printAST") == 0)) ; 
     if(printAST) {
         for(int i = 2; i < argc; i++) {
             fout.open(std::string(argv[i]) + "_tokens.txt");
