@@ -274,6 +274,7 @@ declarator
     : pointer direct_declarator { $$ = create_ast_node(AST_DECLARATOR, 2, $1, $2); }
     | direct_declarator { $$ = create_ast_node(AST_DECLARATOR, 1, $1); }
     ;
+    ;
 
 pointer
     : MULTIPLY { $$ = create_ast_node(AST_POINTER, 1, NULL);}
@@ -285,11 +286,13 @@ pointer
 direct_declarator
     : IDENTIFIER { $$ = create_leaf_node(AST_IDENTIFIER, $1); }
     | LPAREN declarator RPAREN { $$ = $2; }
-    | direct_declarator LSQBRACKET RSQBRACKET { $$ = create_ast_node(AST_ARRAY_ACCESS, 1, $1); }
-    | direct_declarator LSQBRACKET assignment_expression RSQBRACKET { $$ = create_ast_node(AST_ARRAY_ACCESS, 2, $1, $3); }
+    | direct_declarator LSQBRACKET RSQBRACKET { $$ = create_ast_node(AST_ARRAY_DECLARATOR, 1, $1); }
+    | direct_declarator LSQBRACKET assignment_expression RSQBRACKET { $$ = create_ast_node(AST_ARRAY_DECLARATOR, 2, $1, $3); }
+    | direct_declarator LSQBRACKET type_qualifier_list RSQBRACKET { $$ = create_ast_node(AST_ARRAY_DECLARATOR, 2, $1, $3); }
+    | direct_declarator LSQBRACKET type_qualifier_list assignment_expression RSQBRACKET { $$ = create_ast_node(AST_ARRAY_DECLARATOR, 3, $1, $3, $4); }
     | direct_declarator LPAREN RPAREN { $$ = create_ast_node(AST_FUNCTION_DECLARATOR, 1, $1); }
-    | direct_declarator LPAREN argument_expression_list RPAREN  { $$ = create_ast_node(AST_FUNCTION_CALL, 2, $1, $3); }
     | direct_declarator LPAREN parameter_type_list RPAREN  { $$ = create_ast_node(AST_FUNCTION_DECLARATOR, 2, $1, $3); }
+    | direct_declarator LPAREN argument_expression_list RPAREN  { $$ = create_ast_node(AST_FUNCTION_CALL, 2, $1, $3); }
     ;
 
 struct_or_union_specifier
@@ -365,10 +368,17 @@ abstract_declarator
 
 direct_abstract_declarator
     : LPAREN abstract_declarator RPAREN { $$ = $2; }
-    | LSQBRACKET RSQBRACKET { $$ = create_ast_node(AST_ARRAY_ACCESS, 0); }
-    | LSQBRACKET type_qualifier_list assignment_expression RSQBRACKET { $$ = create_ast_node(AST_ARRAY_ACCESS, 2, $2, $3); }
-    | direct_abstract_declarator LSQBRACKET assignment_expression RSQBRACKET { $$ = create_ast_node(AST_ARRAY_ACCESS, 2, $1, $3); }
+    | LSQBRACKET RSQBRACKET { $$ = create_ast_node(AST_ARRAY_DECLARATOR, 0); }
+    | LSQBRACKET assignment_expression RSQBRACKET { $$ = create_ast_node(AST_ARRAY_DECLARATOR, 1, $2); }
+    | LSQBRACKET type_qualifier_list RSQBRACKET { $$ = create_ast_node(AST_ARRAY_DECLARATOR, 1, $2); }
+    | LSQBRACKET type_qualifier_list assignment_expression RSQBRACKET { $$ = create_ast_node(AST_ARRAY_DECLARATOR, 2, $2, $3); }
+    | direct_abstract_declarator LSQBRACKET RSQBRACKET { $$ = create_ast_node(AST_ARRAY_DECLARATOR, 1, $1); }
+    | direct_abstract_declarator LSQBRACKET assignment_expression RSQBRACKET { $$ = create_ast_node(AST_ARRAY_DECLARATOR, 2, $1, $3); }
+    | direct_abstract_declarator LSQBRACKET type_qualifier_list RSQBRACKET { $$ = create_ast_node(AST_ARRAY_DECLARATOR, 2, $1, $3); }
+    | direct_abstract_declarator LSQBRACKET type_qualifier_list assignment_expression RSQBRACKET { $$ = create_ast_node(AST_ARRAY_DECLARATOR, 3, $1, $3, $4); }
+    | LPAREN RPAREN { $$ = create_ast_node(AST_FUNCTION_DECLARATOR, 0); }
     | LPAREN parameter_type_list RPAREN { $$ = create_ast_node(AST_FUNCTION_DECLARATOR, 1, $2); }
+    | direct_abstract_declarator LPAREN RPAREN { $$ = create_ast_node(AST_FUNCTION_DECLARATOR, 1, $1); }
     | direct_abstract_declarator LPAREN parameter_type_list RPAREN { $$ = create_ast_node(AST_FUNCTION_DECLARATOR, 2, $1, $3); }
     ;
 
