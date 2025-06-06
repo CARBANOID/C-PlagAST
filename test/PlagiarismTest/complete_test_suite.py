@@ -6,8 +6,7 @@ AST-CC Plagiarism Detector - Complete Testing Suite
 This script provides a comprehensive testing interface for the AST-CC Plagiarism Detector.
 It includes all analysis types: pairwise comparison, ground truth evaluation, and threshold optimization.
 
-Author: GitHub Copilot
-Date: June 3, 2025
+Date: June 6, 2025
 """
 
 import os
@@ -15,7 +14,106 @@ import sys
 import subprocess
 import csv
 import time
+import platform
+import re
 from pathlib import Path
+
+def find_project_root():
+    """
+    Dynamically find the project root directory by looking for key files
+    """
+    current_dir = Path(__file__).parent.absolute()
+    
+    # Look for project indicators going up the directory tree
+    indicators = ['detector_with_filtering.exe', 'AST.y', 'Makefile', 'build.bat']
+    
+    # Start from current directory and go up
+    search_dir = current_dir
+    for _ in range(10):  # Limit search to 10 levels up
+        # Check if we found the project root
+        bin_dir = search_dir / 'bin'
+        src_dir = search_dir / 'src'
+        
+        if (bin_dir.exists() and 
+            (bin_dir / 'detector_with_filtering.exe').exists() and
+            src_dir.exists() and 
+            (src_dir / 'AST.y').exists()):
+            return search_dir
+            
+        # Go up one level
+        parent = search_dir.parent
+        if parent == search_dir:  # Reached filesystem root
+            break
+        search_dir = parent
+    
+    # Fallback: try to find based on common patterns
+    home_dir = Path.home()
+    common_paths = [
+        home_dir / 'CODING' / 'PROJECTS' / 'PBL' / 'Compiler',
+        home_dir / 'Projects' / 'AST_CC_Plagiarism_Detector',
+        home_dir / 'AST_CC_Plagiarism_Detector',
+        Path('/mnt/c/Users') / os.getenv('USERNAME', 'user') / 'CODING' / 'PROJECTS' / 'PBL' / 'Compiler',
+    ]
+    
+    for base_path in common_paths:
+        if base_path.exists():
+            # Look for AST_CC_Plagiarism_Detector directory
+            for item in base_path.rglob('AST_CC_Plagiarism_Detector'):
+                if item.is_dir():
+                    bin_dir = item / 'bin'
+                    if (bin_dir.exists() and 
+                        (bin_dir / 'detector_with_filtering.exe').exists()):
+                        return item
+    
+    raise FileNotFoundError("Could not find AST_CC_Plagiarism_Detector project root directory")
+
+def convert_path_for_environment(path, env):
+    """
+    Convert path format based on environment
+    """
+    path_str = str(path)
+    
+    if env == 'windows':
+        # Ensure Windows format
+        if path_str.startswith('/mnt/'):
+            # Convert WSL path to Windows path
+            # /mnt/c/... -> C:\...
+            drive_letter = path_str[5].upper()
+            windows_path = path_str[6:].replace('/', '\\')
+            return f"{drive_letter}:{windows_path}"
+        return path_str.replace('/', '\\')
+    else:
+        # WSL/Linux format
+        if ':' in path_str and len(path_str) > 1 and path_str[1] == ':':
+            # Convert Windows path to WSL path
+            # C:\... -> /mnt/c/...
+            drive_letter = path_str[0].lower()
+            wsl_path = path_str[2:].replace('\\', '/')
+            return f"/mnt/{drive_letter}{wsl_path}"
+        return path_str.replace('\\', '/')
+
+def detect_environment():
+    """
+    Detect if we're running in Windows or WSL
+    Returns: 'windows', 'wsl', or 'linux'
+    """
+    system = platform.system().lower()
+    
+    if system == 'windows':
+        return 'windows'
+    elif system == 'linux':
+        # Check if we're in WSL
+        try:
+            with open('/proc/version', 'r') as f:
+                version_info = f.read().lower()
+                if 'microsoft' in version_info or 'wsl' in version_info:
+                    return 'wsl'
+                else:
+                    return 'linux'
+        except:
+            return 'linux'
+    else:
+        return 'unknown'
 
 class PlagiarismTestSuite:
     def __init__(self, test_dir=None):
@@ -24,11 +122,23 @@ class PlagiarismTestSuite:
         else:
             self.test_dir = Path(test_dir)
         
-        self.detector_path = self.test_dir.parent.parent / "bin" / "detector_with_filtering.exe"
+        # Detect environment and get dynamic paths
+        self.env = detect_environment()
+        
+        try:
+            self.project_root = find_project_root()
+            self.detector_path = self.project_root / "bin" / "detector_with_filtering.exe"
+        except FileNotFoundError as e:
+            print(f"❌ Error finding project paths: {e}")
+            print("Please ensure you're running this script from within the AST_CC_Plagiarism_Detector project")
+            sys.exit(1)
+        
         self.c_files = list(self.test_dir.glob("*.c"))
         
         print(f"🔍 AST-CC Plagiarism Detector Test Suite")
+        print(f"🌐 Detected environment: {self.env.upper()}")
         print(f"📂 Test Directory: {self.test_dir}")
+        print(f"🏗️ Project Root: {self.project_root}")
         print(f"🔧 Detector Path: {self.detector_path}")
         print(f"📄 Found {len(self.c_files)} C files for testing")
         print("=" * 80)
@@ -51,26 +161,25 @@ class PlagiarismTestSuite:
                     print(f"📊 Progress: {current_pair}/{total_pairs} - Comparing {file1.name} vs {file2.name}")
                     
                     try:
-                        # Run plagiarism detection with correct command format
-                        # Convert Windows path to WSL path format
-                        wsl_detector_path = str(self.detector_path).replace("D:\\", "/mnt/d/").replace("\\", "/")
-                        cmd = ["wsl", wsl_detector_path, file1.name, "--ast-cc-test", file2.name]
+                        # Run plagiarism detection with cross-platform command
+                        if self.env == 'windows':
+                            # Windows: Use WSL to run the detector
+                            wsl_detector = convert_path_for_environment(self.detector_path, 'wsl')
+                            wsl_test_dir = convert_path_for_environment(self.test_dir, 'wsl')
+                            file1_wsl = f"{wsl_test_dir}/{file1.name}"
+                            file2_wsl = f"{wsl_test_dir}/{file2.name}"
+                            cmd = ["wsl", wsl_detector, file1_wsl, "--ast-cc-test", file2_wsl]
+                        else:
+                            # WSL/Linux: Run detector directly
+                            detector_native = convert_path_for_environment(self.detector_path, self.env)
+                            cmd = [detector_native, file1.name, "--ast-cc-test", file2.name]
                         
                         result = subprocess.run(cmd, capture_output=True, text=True, 
                                               encoding='utf-8', errors='replace', timeout=30, cwd=str(self.test_dir))
                         
                         if result.returncode == 0:
-                            # Parse similarity from output
-                            output_lines = result.stdout.strip().split('\n')
-                            similarity = 0.0
-                            for line in output_lines:
-                                if 'AST-CC Similarity score:' in line:
-                                    try:
-                                        similarity_str = line.split(':')[1].strip().replace('%', '')
-                                        similarity = float(similarity_str)
-                                        break
-                                    except (ValueError, IndexError):
-                                        continue
+                            # Parse similarity from output using improved regex
+                            similarity = self.parse_similarity_from_output(result.stdout)
                             
                             row = [file1.name, file2.name, similarity, "SUCCESS", "Analysis completed"]
                             results.append(row)
@@ -307,6 +416,47 @@ class PlagiarismTestSuite:
         except Exception as e:
             print(f"❌ Error loading ground truth file: {e}")
             return {}
+    
+    def parse_similarity_from_output(self, output):
+        """
+        Parse similarity score from detector output using multiple patterns
+        """
+        if not output:
+            return 0.0
+        
+        # Try multiple patterns to extract similarity
+        for line in output.split('\n'):
+            # Pattern 1: "AST-CC Similarity score: 75%"
+            if 'AST-CC Similarity score:' in line:
+                match = re.search(r'(\d+\.?\d*)%', line)
+                if match:
+                    return float(match.group(1))
+            
+            # Pattern 2: "Similarity: 75%" or "similarity: 75%"
+            if 'Similarity:' in line or 'similarity:' in line.lower():
+                match = re.search(r'(\d+\.?\d*)%', line)
+                if match:
+                    return float(match.group(1))
+            
+            # Pattern 3: Any percentage in similarity-related line
+            if 'similarity' in line.lower():
+                match = re.search(r'(\d+\.?\d*)%', line)
+                if match:
+                    return float(match.group(1))
+        
+        # If no explicit similarity found, look for other indicators
+        if "identical" in output.lower() or "100%" in output:
+            return 100.0
+        
+        # Look for fraction format like "45/45 nodes"
+        match = re.search(r'(\d+)/(\d+)', output)
+        if match:
+            numerator = float(match.group(1))
+            denominator = float(match.group(2))
+            if denominator > 0:
+                return (numerator / denominator) * 100
+        
+        return 0.0
 
 
 def main():
