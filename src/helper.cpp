@@ -75,6 +75,7 @@ std::string ast_node_type_to_string(ASTNodeType type) {
         case AST_ALIGNMENT_SPECIFIER:     return "AlignmentSpecifier";
         case AST_STORAGE_CLASS_SPECIFIER: return "StorageClassSpecifier";
         case AST_DECLARATOR:              return "Declarator";
+        case AST_ARRAY_DECLARATOR:        return "ArrayDeclarator";
         case AST_ENUM:                    return "EnumSpecifier";
         case AST_TYPE_NAME:               return "TypeName";
         case AST_MEMBER_ACCESS:           return "MemberAccess";
@@ -192,7 +193,6 @@ bool is_function_prototype(ASTNode *node) noexcept {
     }
     return false;
 }
-
 
 void yyerror(const char *s) {
     extern int yylineno;  
