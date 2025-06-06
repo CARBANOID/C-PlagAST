@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <deque>
 
+
 extern int yylineno;
 
 class token {
@@ -54,7 +55,6 @@ token search(std::ifstream& fin);
 bool return_found = false ; 
 bool IsDeadCode = false ;
 bool semi = false ; // for single line statements with for,if,while,else,for
-bool rbrace = false ;
 std::string conditional = "" ;
 //------------------------------------
 
@@ -94,7 +94,7 @@ int op_cl = 0; // brace counter
 
 //----Moore seter-----------
 void setMoore(){
-Lock = semi = return_found = rbrace = IsDeadCode = false;
+Lock = semi = return_found = IsDeadCode = false;
 op_cl = typedefs = 0 ;
 conditional = "" ; 
 user_defined_types.clear() ;  
@@ -219,11 +219,6 @@ inline token search(std::ifstream& fin) {
 
     if(fin.eof()) return token("", "", TokenTypes::TOKEN_EOF) ;
 
-    if(rbrace){
-        rbrace = false;
-        return token("}", "RBRACE", TokenTypes::RBRACE);
-    }
-
     char ch;
     while (fin.good()) {
         ch = fin.peek();  
@@ -285,8 +280,6 @@ inline token search(std::ifstream& fin) {
                             tok = search(fin) ; LookAheadTokens.push_back(tok) ;
                             if(tok.token_no == TokenTypes::LBRACE) { op_cl++ , typedefs++ ; }
                             else if(tok.token_no == TokenTypes::IDENTIFIER){
-                                LookAheadTokens.back().token_type = "TYPEDEF_NAME" ;
-                                LookAheadTokens.back().token_no = TokenTypes::TYPEDEF_NAME ;
                                 user_defined_types.insert(tok.token_name) ;
                             }
                             else singleLineTypedef(fin) ;
@@ -365,7 +358,7 @@ inline token search(std::ifstream& fin) {
             return_found = false ;
             skip_dead_code_after_return(fin,op) ; 
 
-            if(conditional == "else") rbrace = true ;
+            if(conditional == "else") LookAheadTokens.push_back(token("RCURLY", "RBRACE", TokenTypes::RBRACE));
             IsDeadCode = false ;
             fin.seekg(-1, std::ios::cur) ; 
         }
