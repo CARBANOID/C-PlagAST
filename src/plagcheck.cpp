@@ -51,13 +51,13 @@ int check_plagarism(const char* original_file, const char* suspected_file) {
     });
 
     std::unordered_map<ASTNode*,MatchingSubtree*> potentialchilds ; 
-
-    for(int i = 0 ; i < matchingSubtrees.size() ; i++){ 
-        if(matchingSubtrees[i].originalNode.subtree_size < 3) continue ; // skip small subtrees // comment this if you want to see all small matches also
+    int s = matchingSubtrees.size();
+    for(int i = 0 ; i < s  ; i++){ 
+        if(matchingSubtrees[i].originalNode.subtree_size < 3) continue ; // skip small subtrees
         potentialchilds[matchingSubtrees[i].originalNode.Node] = &matchingSubtrees[i] ;
     }
 
-    for(int i = 0 ; i< matchingSubtrees.size() ; i++) {
+    for(int i = 0 ; i< int(matchingSubtrees.size()) ; i++) {
         ASTNode* node = matchingSubtrees[i].originalNode.Node ;
         if(potentialchilds.find(node) != potentialchilds.end()) {
            for(auto child : node->children) isDescendant(child, potentialchilds) ;
