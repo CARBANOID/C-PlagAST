@@ -6,8 +6,7 @@
 #include <string>
 #include "C_TOKENS.hpp"
 #include <unordered_set>
-#include <stack>
-
+#include <deque>
 
 extern int yylineno;
 
@@ -48,44 +47,21 @@ public :
 };
 
 static State* Moore;	
+token search(std::ifstream& fin);
 
-struct TypedefInfo {
-    std::string name;
-    std::string baseType;
-    bool is_seu ; // struct/enum/union
-    bool isPointer;
-};
-
-// For Handing Dead Code after Return / break
-//-------------------------------------------
+// For Handing Dead Code after Return
+//------------------------------------
 bool return_found = false ; 
 bool IsDeadCode = false ;
 bool semi = false ; // for single line statements with for,if,while,else,for
 bool rbrace = false ;
 std::string conditional = "" ;
-//-------------------------------------------
+//------------------------------------
 
 // For typedef
 //------------
+int typedefs = 0 ; 
 std::unordered_set<std::string> user_defined_types;
-std::stack<std::string> current_type_stack;
-bool IsUserDefinedType = false;
-bool InTypedefDeclaration = false;
-int seu = 0; // struct/enum/union counter
-int op_cl = 0; // brace counter
-//-------------
-
-
-//----Moore seter-----------
-void setMoore(){
-semi = return_found = rbrace = IsDeadCode = IsUserDefinedType = InTypedefDeclaration = false;
-seu = op_cl = 0 ;
-conditional = "" ; 
-user_defined_types.clear() ;  
-while(!current_type_stack.empty()) current_type_stack.pop() ;
-}
-// ----------------------------
-
 static const std::unordered_set<std::string> standard_typedefs = {
     "size_t", "wchar_t", "ptrdiff_t", "max_align_t", "nullptr_t",
     "FILE", "fpos_t", "time_t", "clock_t", "va_list"
@@ -95,30 +71,42 @@ inline bool IsTypedef(const std::string &type_name) {
     return (user_defined_types.count(type_name) > 0) || (standard_typedefs.count(type_name) > 0);
 }
 
-inline void process_typedef_declaration(std::ifstream &fin, const std::string &identifier) {
-    int pos = fin.tellg();
-    std::string temp;
-    TypedefInfo info;
-    info.name = identifier;
-    
-    if (!current_type_stack.empty()) {
-        info.baseType = current_type_stack.top();
-        current_type_stack.pop();
-    } else info.baseType = "unknown";
-    
-    info.is_seu = (seu > 0);
-    fin >> temp;
-    info.isPointer = (temp.find('*') != std::string::npos);
-    user_defined_types.insert(identifier);    
-    fin.seekg(pos);
+bool Lock = false ;
+std::deque<token>LookAheadTokens ; 
+
+void singleLineTypedef(std::ifstream &fin) {
+    token tok = search(fin);
+    int LastID = -1 ; 
+
+    while(tok.token_no != TokenTypes::SEMICOLON) {
+        LookAheadTokens.push_back(tok) ;
+        if(tok.token_no == TokenTypes::IDENTIFIER) LastID = LookAheadTokens.size()-1 ; 
+        tok = search(fin) ;
+    }
+    LookAheadTokens.push_back(tok) ;
+    user_defined_types.insert(LookAheadTokens[LastID].token_name) ;
 }
+
+int op_cl = 0; // brace counter
+
+//-------------
+
+
+//----Moore seter-----------
+void setMoore(){
+Lock = semi = return_found = rbrace = IsDeadCode = false;
+op_cl = typedefs = 0 ;
+conditional = "" ; 
+user_defined_types.clear() ;  
+}
+// ----------------------------
+
 
 
 inline bool skip_preprocessor_directive(std::ifstream &fin, std::string &directive) {
     directive = "#";
     fin.get();
     char ch;
-    
     while(fin.good() && (ch = fin.peek()) != EOF && ch != '\n') {
         if(!isspace(ch)) directive += ch;
         fin.get();
@@ -152,7 +140,6 @@ inline token string_literal(std::ifstream &fin) {
 		}
 	}
 	str.push_back('"');
-	
 	return token(str, "STRING_LITERAL", TokenTypes::STRING_LITERAL);
 }
 
@@ -223,6 +210,15 @@ void skip_dead_code_after_return(std::ifstream &fin,int &op){
 }   
 
 inline token search(std::ifstream& fin) {
+
+    if(!Lock && !LookAheadTokens.empty()){
+        token& tok = LookAheadTokens.front();
+        LookAheadTokens.pop_front();
+        return tok;
+    }
+
+    if(fin.eof()) return token("", "", TokenTypes::TOKEN_EOF) ;
+
     if(rbrace){
         rbrace = false;
         return token("}", "RBRACE", TokenTypes::RBRACE);
@@ -278,32 +274,37 @@ inline token search(std::ifstream& fin) {
     if (curr->token_info.token_type.empty() || curr->token_info.token_type == "KEYWORD") {
 	    if (ch == ' ' || ch == EOF || isEscapeSequence(ch) || !(isalnum(ch) || ch == '_')) {
 	    	if(curr->token_info.token_type == "KEYWORD") {
-                // Handle typedefs and type definitions
                 if(!IsDeadCode){
-                    if(str == "typedef") {
-                        InTypedefDeclaration = true;
-                        IsUserDefinedType = true;
-                    } 
-                    else if(IsUserDefinedType) {
-                        if(str == "struct" || str == "union" || str == "enum") {
-                            seu++;
-                            current_type_stack.push(str);
-                        } 
-                        else if (str == "int" || str == "char" || str == "float" || 
-                                str == "double" || str == "void" || str == "short" || 
-                                str == "long" || str == "signed" || str == "unsigned") {
-                            current_type_stack.push(str);
+                    if(str == "typedef") {  // Handle typedefs and type definitions
+                        Lock = true ;
+                        token tok = search(fin) ; LookAheadTokens.push_back(tok) ;
+                        if(tok.token_no == TokenTypes::STRUCT || tok.token_no == TokenTypes::UNION || tok.token_no == TokenTypes::ENUM){
+                            tok = search(fin) ; LookAheadTokens.push_back(tok) ;
+                            if(tok.token_no == TokenTypes::LBRACE){ op_cl++ , typedefs++ ; }
+                            else{
+                            tok = search(fin) ; LookAheadTokens.push_back(tok) ;
+                            if(tok.token_no == TokenTypes::LBRACE) { op_cl++ , typedefs++ ; }
+                            else if(tok.token_no == TokenTypes::IDENTIFIER){
+                                LookAheadTokens.back().token_type = "TYPEDEF_NAME" ;
+                                LookAheadTokens.back().token_no = TokenTypes::TYPEDEF_NAME ;
+                                user_defined_types.insert(tok.token_name) ;
+                            }
+                            else singleLineTypedef(fin) ;
+                            }
                         }
+                        else singleLineTypedef(fin) ;   
+                        Lock = false ;
                     }
                     else if(str == "return" || str == "break") return_found = true ;
                     else if(str == "for" || str == "if" || str == "while" || str == "else" || str == "do" || str == "case"){
                         conditional = str ; 
                         semi = true ;
-                    }else conditional = "" ;
+                    }
+                    else conditional = "" ;
                 }
 	    		return curr->getTokenInfo();
 	    	}
-	    }
+		}
 
 	    while ((ch = fin.peek()) != EOF) {
 		 	if(((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch =='_') || (ch >= '0' && ch <= '9'))){
@@ -313,32 +314,6 @@ inline token search(std::ifstream& fin) {
 	    }
 
         if (IsTypedef(str)) return token(str, "TYPEDEF_NAME", TokenTypes::TYPEDEF_NAME);
-
-        if(InTypedefDeclaration && op_cl == 0) {
-            int pos = fin.tellg();
-            std::string temp = "";
-            
-            if(seu == 0) {   // Regular typedef (not struct/enum/union)
-                while(true) {
-                    fin >> temp;
-                    if(temp == ";") {
-                        InTypedefDeclaration = false;
-                        IsUserDefinedType = false;
-                        break;
-                    } 
-                    else if(temp == ",") continue;
-                    else process_typedef_declaration(fin, temp); 
-                }
-            } else if(seu == 1) { // Typedef for struct/enum/union
-                fin >> temp;
-                if(temp == ";") {
-                    process_typedef_declaration(fin, str);
-                    InTypedefDeclaration = false;
-                    IsUserDefinedType = false;
-                }
-            }
-            fin.seekg(pos);
-        }
  	    return token(str,"ID",TokenTypes::IDENTIFIER);
 	}	
 
@@ -364,14 +339,24 @@ inline token search(std::ifstream& fin) {
 
     if(str == "{") semi = false ;  // for dead code after retun
 
-    if(seu){        //  for typedefs hanlding 
-        if(str == "{") op_cl++;
-        else if(str == "}") { 
-            op_cl--; 
-            seu--;
+
+    if(typedefs && str == "}"){ // for struct/enum/union typedefs
+        if(op_cl == typedefs){
+            Lock = true ;
+            while(true){
+                token tok = search(fin) ;
+                LookAheadTokens.push_back(tok) ; 
+                if(tok.token_no == TokenTypes::IDENTIFIER){ 
+                    user_defined_types.insert(tok.token_name) ;
+                }
+                else if(tok.token_no == TokenTypes::SEMICOLON) break  ;       
+            }
+            op_cl-- ; typedefs-- ;  
+            Lock = false ;
         }
+        else op_cl-- ;
     }
-    else if(!IsDeadCode && (return_found && str == ";")){ // for dead code after return normalization 
+    else if(!IsDeadCode && (return_found && str == ";")){ // for dead code after return/break normalization 
         if(conditional!= "case" && (!semi || conditional == "")){
             int op = 0 ;    
             if(conditional == "else") op = 1 ;
@@ -405,7 +390,6 @@ inline void insertTokensInMoore() {
         }
     }
 }
-
 
 struct MooreInitializer {
     MooreInitializer() {
