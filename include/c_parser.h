@@ -57,7 +57,6 @@ typedef enum {
     AST_ALIGNMENT_SPECIFIER = 239,
     AST_STORAGE_CLASS_SPECIFIER = 241,
     AST_DECLARATOR = 251,
-    AST_ARRAY_DECLARATOR = 253,
     AST_ENUM = 257,
     AST_TYPE_NAME = 263,
     AST_CONTINUE = 269,
@@ -94,6 +93,7 @@ typedef enum {
     AST_CONDITIONAL = 467,         
     AST_COMMA = 479,               
     AST_ELSE = 487,              
+    AST_ARRAY_DECLARATOR = 491,
 } ASTNodeType;
 
 
