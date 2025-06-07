@@ -130,3 +130,10 @@ bin\detector_with_filtering.exe --printAST test1.c test2.c test3.c
   * `c_parser.exe` – Optional standalone parser binary
 
 ---
+
+* build will be generated upon compilation in the `build/` directory:
+
+  * `parser.cpp` 
+  * `parser.hpp`
+  * `parser.output`
+    
