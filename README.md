@@ -1,139 +1,124 @@
+Sure! Here’s the optimized `README.md` content for your `C-PlagAST` project in **copyable format**:
 
 ---
 
-### 📄 **Project Title:**
+````
+# 🔍 C-PlagAST: AST-CC Based Plagiarism Detection Tool for C Code
 
-**C-PlagAST: AST-CC Based Plagiarism Detection Tool for C Code**
+**C-PlagAST** is an advanced plagiarism detection tool built for C programs. It uses the **AST-CC** (Abstract Syntax Tree – Consistent Comparison) algorithm to detect structural similarity in code — even after formatting changes, variable renaming, or code reordering. Ideal for academic environments, it delivers accurate, structure-aware plagiarism analysis beyond basic text matching.
 
----
-
-### 📝 **Project Description:**
-
-**C-PlagAST** is an advanced plagiarism detection tool specifically designed for analyzing C source code. It leverages the **AST-CC (Abstract Syntax Tree – Consistent Comparison)** algorithm to identify structural similarities between code files, making it robust against superficial changes such as variable renaming, formatting variations, and reordering of functions or declarations.
-
-Unlike traditional text-based comparison tools, C-PlagAST parses source code into **abstract syntax trees**, applies a series of **normalization techniques** (such as dead code elimination, function and declaration reordering, and prototype removal), and then generates structural hashes or similarity scores to evaluate the likelihood of plagiarism.
-
-This tool is intended for use in academic and professional environments where accurate and structure-aware code plagiarism detection is essential.
+![GitHub repo size](https://img.shields.io/github/repo-size/CARBANOID/C-PlagAST)
+![GitHub stars](https://img.shields.io/github/stars/CARBANOID/C-PlagAST?style=social)
+![GitHub license](https://img.shields.io/github/license/CARBANOID/C-PlagAST)
 
 ---
 
-### 🔍 **Key Features:**
+## ✨ Features
 
-* AST-based structural comparison of C programs
-* Supports normalization techniques:
-
-  * Dead code and unreachable code removal
-  * Declaration and function reordering
-  * Prototype elimination
-* Confusion matrix and accuracy reporting
-* CLI-based execution with support for batch testing
-* Ideal for academic plagiarism detection in C programming assignments
+- ⚙️ **AST-Based Structural Code Comparison**
+- 🔄 Normalization techniques:
+  - Dead/unreachable code removal
+  - Declaration/function reordering
+  - Prototype elimination
+- 📊 Confusion matrix & accuracy reporting
+- 📁 Batch file comparison support
+- 🧪 Ideal for detecting academic plagiarism in C code
 
 ---
 
 ## 🛠️ Build & Run Instructions
 
-This project supports multiple build options for Linux, WSL, and Windows.
+Supports **Linux**, **WSL**, and **Windows** environments.
 
----
-
-### 🐧 Linux / WSL
-
----
+<details>
+<summary>🐧 Linux / WSL</summary>
 
 ### 📦 Install Dependencies
 
-Before building, make sure required packages are installed:
-
 ```bash
 sudo apt update && sudo apt install bison g++ make
-```
+````
 
-This installs:
-
-* `bison` – for generating the parser
-* `g++` – for compiling C++ code
-* `make` – for using the Makefile
-
----
-
-To clean previous builds:
+### 🔧 Build
 
 ```bash
-make clean
-```
-
-#### ✅ Build using `Makefile` (recommended)
-
-```bash
-make
-```
-or 
----
-#### ✅ Build using `build.sh`
-
-```bash
+make         # Recommended
+# or
 bash build.sh
 ```
 
-#### ▶️ Run the Tool
-
-To check for plagiarism:
+### 🧪 Run the Tool
 
 ```bash
-./bin/detector_with_filtering.exe original.c --ast-cc-test suspected1.c suspected2.c suspected3.c
+./bin/detector_with_filtering.exe original.c --ast-cc-test suspected1.c suspected2.c
 ```
-The plagiarism will be checked by comparing the added files after the --ast-cc-test flag against original.c .
 
-To print the **Normalized AST** for debugging:
+To print the Normalized AST:
 
 ```bash
-./bin/detector_with_filtering.exe --printAST test1.c test2.c test3.c
+./bin/detector_with_filtering.exe --printAST test1.c test2.c
 ```
 
----
+</details>
 
-### 🪟 Windows
+<details>
+<summary>🪟 Windows</summary>
 
-#### ✅ Build using `build.bat`
+### 🔧 Build
 
-Run in File Explorer or via Command Prompt:
+Run `build.bat` in File Explorer or Command Prompt:
 
-```cmd
+```bat
 .\build.bat
 ```
 
-> ⚠️ Ensure `bison` and `g++` are available in your `PATH`. Use MSYS2 or WSL if necessary.
+> ⚠️ Ensure `bison` and `g++` are in PATH (use MSYS2 or WSL if needed)
 
-#### ▶️ Run the Tool
+### 🧪 Run the Tool
 
-To check for plagiarism:
-
-```cmd
-bin\detector_with_filtering.exe original.c --ast-cc-test suspected1.c suspected2.c suspected3.c
+```bat
+bin\detector_with_filtering.exe original.c --ast-cc-test suspected1.c suspected2.c
 ```
-The plagiarism will be checked by comparing the added files after the --ast-cc-test flag against original.c .
 
-To print the **normalized AST**:
+To print normalized AST:
 
-```cmd
-bin\detector_with_filtering.exe --printAST test1.c test2.c test3.c
+```bat
+bin\detector_with_filtering.exe --printAST test1.c test2.c
+```
+
+</details>
+
+---
+
+## 📂 Output Structure
+
+* 🔹 `bin/` — Compiled executables
+
+  * `detector_with_filtering.exe` — Main detector
+  * `c_parser.exe` — Optional standalone parser
+* 🔹 `build/` — Intermediate parser files (`parser.cpp`, `parser.hpp`)
+
+---
+
+## 📌 Example Usage
+
+```bash
+./bin/detector_with_filtering.exe original.c --ast-cc-test suspect1.c suspect2.c
 ```
 
 ---
 
-### 📂 Output
+## 🙋‍♂️ Author
 
-* Executables will be generated in the `bin/` directory:
-
-  * `detector_with_filtering.exe` – Main detector with normalization and filtering
-  * `c_parser.exe` – Optional standalone parser binary
+**Sushant Negi**
+CARBANOID
+📍 India
+🧑‍💻 BTech CSE (6th Semester)
+🔗 GitHub: [CARBANOID](https://github.com/CARBANOID)
 
 ---
 
-* build will be generated upon compilation in the `build/` directory:
+## 🏷️ Keywords
 
-  * `parser.cpp` 
-  * `parser.hpp`
-  * `parser.output`
-    
+`plagiarism detection` · `AST-CC` · `C language` · `abstract syntax tree` · `academic integrity` · `code normalization` · `source code similarity` · `C plagiarism checker`
+---
