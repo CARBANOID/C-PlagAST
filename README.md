@@ -1,5 +1,3 @@
-Sure! Here’s the optimized `README.md` content for your `C-PlagAST` project in **copyable format**:
-
 ---
 
 ````
