@@ -1,5 +1,3 @@
----
-
 ````
 # 🔍 C-PlagAST: AST-CC Based Plagiarism Detection Tool for C Code
 
