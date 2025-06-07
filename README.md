@@ -5,13 +5,8 @@ Sure! Here’s the optimized `README.md` content for your `C-PlagAST` project in
 ````
 # 🔍 C-PlagAST: AST-CC Based Plagiarism Detection Tool for C Code
 
-**C-PlagAST** is an advanced plagiarism detection tool built for C programs. It uses the **AST-CC** (Abstract Syntax Tree – Consistent Comparison) algorithm to detect structural similarity in code — even after formatting changes, variable renaming, or code reordering. Ideal for academic environments, it delivers accurate, structure-aware plagiarism analysis beyond basic text matching.
-
-![GitHub repo size](https://img.shields.io/github/repo-size/CARBANOID/C-PlagAST)
-![GitHub stars](https://img.shields.io/github/stars/CARBANOID/C-PlagAST?style=social)
-![GitHub license](https://img.shields.io/github/license/CARBANOID/C-PlagAST)
-
----
+**C-PlagAST** is an advanced plagiarism detection tool built for C programs. It uses the **AST-CC** (Abstract Syntax Tree – Consistent Comparison) algorithm to detect structural similarity in code
+ — even after formatting changes, variable renaming, or code reordering. Ideal for academic environments, it delivers accurate, structure-aware plagiarism analysis beyond basic text matching.
 
 ## ✨ Features
 
@@ -20,6 +15,7 @@ Sure! Here’s the optimized `README.md` content for your `C-PlagAST` project in
   - Dead/unreachable code removal
   - Declaration/function reordering
   - Prototype elimination
+  - Insensitive to Identifier/Function Naming
 - 📊 Confusion matrix & accuracy reporting
 - 📁 Batch file comparison support
 - 🧪 Ideal for detecting academic plagiarism in C code
